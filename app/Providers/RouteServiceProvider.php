@@ -39,7 +39,12 @@ class RouteServiceProvider extends ServiceProvider
 
         $this->mapWebRoutes();
 
-        //
+        $this->mapBotManCommands();
+    }
+
+    protected function mapBotManCommands()
+    {
+        require base_path('routes/botman.php');
     }
 
     /**

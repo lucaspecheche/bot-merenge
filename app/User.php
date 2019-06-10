@@ -2,38 +2,50 @@
 
 namespace App;
 
+use App\Models\Menu;
+use BotMan\BotMan\Interfaces\UserInterface;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
     use Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
-        'name', 'email', 'password',
+        'identifier', 'first_name', 'last_name', 'status',
     ];
 
-    /**
-     * The attributes that should be hidden for arrays.
-     *
-     * @var array
-     */
-    protected $hidden = [
-        'password', 'remember_token',
-    ];
+    public function findByIdentifier(int $identifier): ?User
+    {
+        return $this::query()->where('identifier', $identifier)->get()->first();
+    }
 
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
+    public function findOrCreate(UserInterface $userChat): User
+    {
+        $user = $this->findByIdentifier($userChat->getId());
+
+        if(is_null($user)){
+            $user = (new User);
+            $user->fill($this->adapter($userChat))
+                ->save();
+        }
+
+        return $user;
+    }
+
+    private function adapter(UserInterface $identifier): array
+    {
+        return [
+            'identifier' => $identifier->getId(),
+            'first_name' => $identifier->getFirstName(),
+            'last_name'  => $identifier->getLastName(),
+            'username'   => $identifier->getUsername(),
+            'status'     => data_get($identifier->getInfo(), 'status')
+        ];
+    }
+
+    public function menus()
+    {
+        return $this->belongsToMany(Menu::class, 'dishes_menus', 'menuId', 'dishId');
+    }
 }

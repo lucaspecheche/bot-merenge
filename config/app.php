@@ -165,6 +165,7 @@ return [
         /*
          * Package Service Providers...
          */
+        App\Providers\BotManTelegramProvider::class,
 
         /*
          * Application Service Providers...
